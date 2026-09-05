@@ -11,6 +11,8 @@ A console-based Library Management System built in Java demonstrating core OOP p
 - Borrow and return books
 - Waitlist management with automatic notifications
 - Search books by title, author, ISBN, ID, or genre
+- Custom logging framework (console logger with timestamps and log levels)
+- Custom exception handling in the service layer (`BookNotFoundException`, `PatronNotFoundException`, etc.)
 - View all bookings, book booking history, and user booking history
 
 ---
@@ -37,6 +39,16 @@ com.airtribe.libraryManagementSystem
 │   └── Booking.java
 ├── util/
 │   └── IdGenerator.java
+├── exception/
+│   ├── BookNotFoundException.java
+│   ├── PatronNotFoundException.java
+│   ├── BookingNotFoundException.java
+│   └── InvalidInputException.java
+├── logging/
+│   ├── LogLevel.java
+│   ├── Logger.java
+│   ├── ConsoleLogger.java
+│   └── LoggerFactory.java
 ├── repository/
 │   ├── BookRepository.java
 │   ├── PatronRepository.java
@@ -72,6 +84,7 @@ com.airtribe.libraryManagementSystem
 | **Observer**   | `WaitlistNotificationService` notifies patrons on book return                  |
 | **Strategy**   | `SearchBook` interface with 5 interchangeable search strategies                |
 | **Repository** | `BookRepository`, `PatronRepository`, `BookingRepository` abstract data access |
+| **Factory**    | `LoggerFactory` creates class-specific `Logger` instances                      |
 
 ---
 
@@ -84,14 +97,18 @@ com.airtribe.libraryManagementSystem
 | ---------------------------------------- | --------------------------------------------------------- |
 | `Book`, `Patron`, `Booking`              | Hold domain data only                                     |
 | `IdGenerator`                            | Auto-generate unique IDs                                  |
+| `Book/Patron/BookingNotFoundException`   | Encapsulate domain-specific lookup failure errors         |
+| `InvalidInputException`                  | Encapsulate validation failure errors                     |
+| `ConsoleLogger`                          | Format and print logs to console                          |
+| `LoggerFactory`                          | Instantiate loggers for classes                           |
 | `LocalBookRepository`                    | Store and retrieve book data                              |
 | `LocalPatronRepository`                  | Store and retrieve patron data                            |
 | `LocalBookingRepository`                 | Store and retrieve booking data                           |
 | `SearchBookByTitle/Author/ISBN/Id/Genre` | One search strategy each                                  |
-| `ConsoleNotificationObserver`            | Print notification to console                             |
-| `EmailNotificationObserver`              | Simulate sending an email                                 |
-| `WaitlistNotificationService`            | Manage observers and broadcast                            |
-| `LibraryServiceImpl`                     | Orchestrate (delegates — never implements logic directly) |
+| `ConsoleNotificationObserver`            | Log notification to console                               |
+| `EmailNotificationObserver`              | Simulate sending an email notification                    |
+| `WaitlistNotificationService`            | Manage observers and broadcast events                     |
+| `LibraryServiceImpl`                     | Orchestrate domain rules and validation — throws exceptions|
 
 ---
 
@@ -104,6 +121,8 @@ New behaviour is added by creating new classes, never by editing existing ones:
 | ------------------------------------ | --------------------------------------------------- | --------------------- |
 | New search type (e.g. by Genre)      | Create `SearchBookByGenre implements SearchBook`    | ❌ No                  |
 | New notification channel (SMS, Push) | Create `SmsObserver implements Observer`            | ❌ No                  |
+| New logger (e.g., File, Database)    | Create `FileLogger implements Logger`               | ❌ No                  |
+| New domain exception                 | Create `NewException extends RuntimeException`      | ❌ No                  |
 | Swap in-memory DB with real DB       | Create `DbBookRepository implements BookRepository` | ❌ No                  |
 
 ---
@@ -111,14 +130,19 @@ New behaviour is added by creating new classes, never by editing existing ones:
 ### L — Liskov Substitution Principle
 > *A subtype must be fully substitutable for its base type.*
 
-Every concrete class honours its interface contract without narrowing behaviour:
+Every concrete class honours its interface or superclass contract cleanly:
 
 ```
-LocalBookRepository    →  fully substitutes  BookRepository
-LocalPatronRepository  →  fully substitutes  PatronRepository
-LocalBookingRepository →  fully substitutes  BookingRepository
-LibraryServiceImpl     →  fully substitutes  LibraryService
-SearchBookByTitle      →  fully substitutes  SearchBook
+ConsoleLogger              →  fully substitutes  Logger
+BookNotFoundException      →  fully substitutes  RuntimeException
+PatronNotFoundException    →  fully substitutes  RuntimeException
+BookingNotFoundException   →  fully substitutes  RuntimeException
+InvalidInputException      →  fully substitutes  RuntimeException
+LocalBookRepository        →  fully substitutes  BookRepository
+LocalPatronRepository      →  fully substitutes  PatronRepository
+LocalBookingRepository     →  fully substitutes  BookingRepository
+LibraryServiceImpl         →  fully substitutes  LibraryService
+SearchBookByTitle          →  fully substitutes  SearchBook
 ConsoleNotificationObserver → fully substitutes Observer
 WaitlistNotificationService → fully substitutes Subject
 ```
@@ -132,6 +156,7 @@ Each interface is kept focused to its own domain:
 
 | Interface           | Purpose                         | Methods                    |
 | ------------------- | ------------------------------- | -------------------------- |
+| `Logger`            | Logging operations              | 3 — `info, warning, error` |
 | `Observer`          | Receive notifications           | 1 — `update()`             |
 | `Subject`           | Manage & broadcast to observers | 3 — `add/remove/broadcast` |
 | `SearchBook`        | Define a search strategy        | 1 — `searchBook()`         |
@@ -144,25 +169,20 @@ Each interface is kept focused to its own domain:
 ### D — Dependency Inversion Principle
 > *High-level modules depend on abstractions, not concretions.*
 
-`LibraryServiceImpl` depends only on interfaces — it never references any concrete class directly:
+`LibraryServiceImpl`, `Main`, and observers depend only on interface abstractions:
 
 ```java
-// LibraryServiceImpl — all dependencies are abstractions ✅
+// Dependencies are abstractions ✅
 private final BookRepository bookRepository;       // interface
 private final PatronRepository patronRepository;   // interface
 private final BookingRepository bookingRepository; // interface
 private final Subject notificationService;         // interface
-
-// Constructor receives Subject — not WaitlistNotificationService ✅
-public LibraryServiceImpl(..., Subject notificationService) {
-    this.notificationService = notificationService;
-}
+private static final Logger logger = LoggerFactory.getLogger(LibraryServiceImpl.class); // Logger interface
 ```
 
 All concrete wiring is done in `Main` (the composition root):
 
 ```java
-// Main.java — only place that knows about concrete classes ✅
 Subject notificationService = new WaitlistNotificationService();
 notificationService.addObserver(new ConsoleNotificationObserver());
 notificationService.addObserver(new EmailNotificationObserver());
@@ -177,7 +197,7 @@ LibraryService libraryService = new LibraryServiceImpl(
 
 ---
 
-## Class Diagram
+## Class Diagrams
 
 ### 1. Model Layer (Domain)
 
@@ -185,25 +205,37 @@ LibraryService libraryService = new LibraryServiceImpl(
 
 ---
 
-### 2. Repository Layer
+### 2. Custom Exception Hierarchy
+
+![Custom Exception Hierarchy](ClassDiagrams/CustomExceptionHierarchy.png)
+
+---
+
+### 3. Custom Logging Framework (Factory Pattern)
+
+![Custom Logging Framework](ClassDiagrams/CustomLoggingFramework.png)
+
+---
+
+### 4. Repository Layer
 
 ![Repository Layer](ClassDiagrams/RepositoryLayer.png)
 
 ---
 
-### 3. Search — Strategy Pattern
+### 5. Search — Strategy Pattern
 
 ![Search Strategy Pattern](ClassDiagrams/SearchStrategyPattern.png)
 
 ---
 
-### 4. Notification — Observer Pattern
+### 6. Notification — Observer Pattern
 
 ![Notification Observer Pattern](ClassDiagrams/Notification-ObserverPattern.png)
 
 ---
 
-### 5. Service — Facade Pattern
+### 7. Service — Facade Pattern
 
 ![Service Facade Pattern](ClassDiagrams/Service-FacadePattern.png)
 
