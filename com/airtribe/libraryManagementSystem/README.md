@@ -207,13 +207,13 @@ LibraryService libraryService = new LibraryServiceImpl(
 
 ### 2. Custom Exception Hierarchy
 
-![Custom Exception Hierarchy](ClassDiagrams/CustomExceptionHierarchy.png)
+![Custom Exception Hierarchy](ClassDiagrams/CustomExceptions.png)
 
 ---
 
 ### 3. Custom Logging Framework (Factory Pattern)
 
-![Custom Logging Framework](ClassDiagrams/CustomLoggingFramework.png)
+![Custom Logging Framework](ClassDiagrams/CustomLogger.png)
 
 ---
 
@@ -237,7 +237,7 @@ LibraryService libraryService = new LibraryServiceImpl(
 
 ### 7. Service — Facade Pattern
 
-![Service Facade Pattern](ClassDiagrams/Service-FacadePattern.png)
+![Service Facade Pattern](ClassDiagrams/ServiceLayer-FacadePattern.png)
 
 ---
 
