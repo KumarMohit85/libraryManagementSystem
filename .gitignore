@@ -1,0 +1,15 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code
+.vscode/
+
+# Compiled Java files
+*.class
+
+# Build directories
+out/
+build/
+target/
