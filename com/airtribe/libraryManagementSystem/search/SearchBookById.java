@@ -3,9 +3,14 @@ package com.airtribe.libraryManagementSystem.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.airtribe.libraryManagementSystem.logging.Logger;
+import com.airtribe.libraryManagementSystem.logging.LoggerFactory;
 import com.airtribe.libraryManagementSystem.model.Book;
 
 public class SearchBookById implements SearchBook {
+
+    private static final Logger logger = LoggerFactory.getLogger(SearchBookById.class);
+
     @Override
     public List<Book> searchBook(List<Book> books, String query) {
         List<Book> result = new ArrayList<>();
@@ -18,7 +23,8 @@ public class SearchBookById implements SearchBook {
                 }
             }
         } catch (NumberFormatException e) {
-            System.out.println("Invalid ID format. Please enter a number.");
+            logger.warning("Invalid book ID format entered: '" + query + "'");
+            System.out.println("Invalid ID. Please enter a number.");
         }
         return result;
     }
