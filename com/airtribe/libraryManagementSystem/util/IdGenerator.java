@@ -1,20 +1,29 @@
 package com.airtribe.libraryManagementSystem.util;
 
 public class IdGenerator {
-    private static int bookCounter = 0;
-    private static int patronCounter = 0;
-    private static int bookingCounter = 0;
 
-    public static int getNextBookId() {
+    private static final IdGenerator instance = new IdGenerator();
+
+    private int bookCounter = 0;
+    private int patronCounter = 0;
+    private int bookingCounter = 0;
+
+    private IdGenerator() {
+    }
+
+    public static IdGenerator getInstance() {
+        return instance;
+    }
+
+    public synchronized int getNextBookId() {
         return ++bookCounter;
     }
 
-    public static int getNextPatronId() {
+    public synchronized int getNextPatronId() {
         return ++patronCounter;
     }
 
-    public static int getNextBookingId() {
+    public synchronized int getNextBookingId() {
         return ++bookingCounter;
     }
-
 }

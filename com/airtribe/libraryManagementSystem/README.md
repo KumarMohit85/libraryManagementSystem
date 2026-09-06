@@ -84,6 +84,7 @@ com.airtribe.libraryManagementSystem
 | **Observer**   | `WaitlistNotificationService` notifies patrons on book return                  |
 | **Strategy**   | `SearchBook` interface with 5 interchangeable search strategies                |
 | **Repository** | `BookRepository`, `PatronRepository`, `BookingRepository` abstract data access |
+| **Singleton**  | `IdGenerator` — thread-safe global instance for unique ID generation           |
 | **Factory**    | `LoggerFactory` creates class-specific `Logger` instances                      |
 
 ---
@@ -93,22 +94,22 @@ com.airtribe.libraryManagementSystem
 ### S — Single Responsibility Principle
 > *Each class has one and only one reason to change.*
 
-| Class                                    | Responsibility                                            |
-| ---------------------------------------- | --------------------------------------------------------- |
-| `Book`, `Patron`, `Booking`              | Hold domain data only                                     |
-| `IdGenerator`                            | Auto-generate unique IDs                                  |
-| `Book/Patron/BookingNotFoundException`   | Encapsulate domain-specific lookup failure errors         |
-| `InvalidInputException`                  | Encapsulate validation failure errors                     |
-| `ConsoleLogger`                          | Format and print logs to console                          |
-| `LoggerFactory`                          | Instantiate loggers for classes                           |
-| `LocalBookRepository`                    | Store and retrieve book data                              |
-| `LocalPatronRepository`                  | Store and retrieve patron data                            |
-| `LocalBookingRepository`                 | Store and retrieve booking data                           |
-| `SearchBookByTitle/Author/ISBN/Id/Genre` | One search strategy each                                  |
-| `ConsoleNotificationObserver`            | Log notification to console                               |
-| `EmailNotificationObserver`              | Simulate sending an email notification                    |
-| `WaitlistNotificationService`            | Manage observers and broadcast events                     |
-| `LibraryServiceImpl`                     | Orchestrate domain rules and validation — throws exceptions|
+| Class                                    | Responsibility                                              |
+| ---------------------------------------- | ----------------------------------------------------------- |
+| `Book`, `Patron`, `Booking`              | Hold domain data only                                       |
+| `IdGenerator`                            | Auto-generate unique IDs                                    |
+| `Book/Patron/BookingNotFoundException`   | Encapsulate domain-specific lookup failure errors           |
+| `InvalidInputException`                  | Encapsulate validation failure errors                       |
+| `ConsoleLogger`                          | Format and print logs to console                            |
+| `LoggerFactory`                          | Instantiate loggers for classes                             |
+| `LocalBookRepository`                    | Store and retrieve book data                                |
+| `LocalPatronRepository`                  | Store and retrieve patron data                              |
+| `LocalBookingRepository`                 | Store and retrieve booking data                             |
+| `SearchBookByTitle/Author/ISBN/Id/Genre` | One search strategy each                                    |
+| `ConsoleNotificationObserver`            | Log notification to console                                 |
+| `EmailNotificationObserver`              | Simulate sending an email notification                      |
+| `WaitlistNotificationService`            | Manage observers and broadcast events                       |
+| `LibraryServiceImpl`                     | Orchestrate domain rules and validation — throws exceptions |
 
 ---
 

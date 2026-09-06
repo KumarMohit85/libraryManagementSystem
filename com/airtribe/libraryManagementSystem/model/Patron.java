@@ -9,7 +9,7 @@ public class Patron {
     private String address;
 
     public Patron(String name, String phone, String address) {
-        this.id = IdGenerator.getNextPatronId();
+        this.id = IdGenerator.getInstance().getNextPatronId();
         this.name = name;
         this.phone = phone;
         this.address = address;

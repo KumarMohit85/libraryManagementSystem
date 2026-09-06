@@ -13,7 +13,7 @@ public class Booking {
     private boolean isReturned;
 
     public Booking(int bookId, int patronId, Date bookingDate) {
-        this.id = IdGenerator.getNextBookingId();
+        this.id = IdGenerator.getInstance().getNextBookingId();
         this.bookId = bookId;
         this.patronId = patronId;
         this.bookingDate = bookingDate;

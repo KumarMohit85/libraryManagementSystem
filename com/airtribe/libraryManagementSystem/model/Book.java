@@ -11,7 +11,7 @@ public class Book {
     private String publicationYear;
 
     public Book(String title, String author, String genre, String isbn, String publicationYear) {
-        this.id = IdGenerator.getNextBookId();
+        this.id = IdGenerator.getInstance().getNextBookId();
         this.title = title;
         this.author = author;
         this.genre = genre;
